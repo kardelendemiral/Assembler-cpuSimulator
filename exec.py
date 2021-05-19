@@ -1,4 +1,3 @@
-
 def get_inst_add_type(s):
 	bin_version = ""
 	for c in s:
@@ -77,7 +76,20 @@ def get_inst_add_type(s):
 		return_list.append("MEMORY ADD")
 
 	return return_list			
-																										
+								
+def get_register_name(s):
+	if s == '0001':
+		return 'A'
+	elif s == '0002':
+		return 'B':
+	elif s == '0003':
+		return 'C':
+	elif s == '0004':
+		return 'D':
+	elif s == '0005':
+		return 'E':
+	elif s == '0006':
+		return 'S':																															
 
 inputFile = open("output", "r")
 outputFile = open("output2", "w")
@@ -94,4 +106,74 @@ for instruction in instructions:
 	addressing_mode = ia[1] 
 	last = instruction[2:]
 	#value = find_value(last)
-	
+
+	if inst_type == 'HALT':
+		# ?
+	elif inst_type == 'LOAD':
+		a = value
+	elif inst_type == 'STORE':
+		store(value)   # bu funcda a'yı store edicegimiz yeri bulup store ederiz
+	elif inst_type == 'ADD':
+		# cf, sf, zf
+		a = a + value
+		# flagları set et
+	elif inst_type == 'SUB':
+		# cf, sf, zf
+		a = a - value
+		# flaglar
+	elif inst_type == 'INC':	
+		# cf, sf, zf
+		# value'yu arttırcaz
+	elif inst_type == 'DEC':
+		# cf, sf, zf
+
+	elif inst_type == 'XOR':
+		# sf, zf
+		a = a ^ value
+		# flaglar
+	elif inst_type == 'AND':
+		# sf, zf
+		a = a and value #?????cidden boyle mi
+	elif inst_type == 'OR':
+		# sf, zf
+		a = a or value
+	elif inst_type == 'NOT':
+		# sf, zf
+		# not'ını alıp napıcaz yazmamış
+	elif inst_type == 'SHL':
+		# cf, sf, zf
+		# value'daki registerı << yapcak
+	elif inst_type == 'SHR':
+		# sf, zf
+		# register'ı >> yapcak
+	elif inst_type == 'NOP':
+		continue
+	elif inst_type == 'PUSH':
+		# Push a word sized operand (two bytes) and update S by subtracting 2.	
+	elif inst_type == 'POP':
+		# Pop a word sized data (two bytes) into the operand and update S by adding 2.	
+	elif inst_type == 'CMP':
+		# cf, sf, zf	
+		# Perform comparison (AC-operand) and set flag accordingly.
+	elif inst_type == 'JMP':
+		# Unconditional jump. Set PC to address.
+	elif inst_type == 'JZ':	
+		# Conditional jump. Jump to address (given as immediate operand) if zero flag is true.
+	elif inst_type == 'JNZ':
+		# Conditional jump. Jump to address (given as immediate operand) if zero flag is false.
+	elif inst_type == 'JC':
+		# Conditional jump. Jump if carry flag is true.
+	elif inst_type == 'JNC':
+		# Conditional jump. Jump if carry flag is false.
+	elif inst_type == 'JA':
+		# Conditional jump. Jump if carry flag is false.
+	elif inst_type == 'JAE':
+		# Conditional jump. Jump if above or equal.
+	elif inst_type == 'JB':
+		# Conditional jump. Jump if below
+	elif inst_type == 'JBE':
+		# Conditional	jump. Jump if below or equal
+	elif inst_type == 'READ':
+		# Reads	a character into the operand.
+	elif inst_type == 'PRINT':	
+		# Prints the operand as a character. abi zaten char yazın diyomuş biz malmışız
