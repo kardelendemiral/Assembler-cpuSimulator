@@ -172,7 +172,7 @@ for instruction in instructions:
 	elif inst_type == 'JB':
 		# Conditional jump. Jump if below
 	elif inst_type == 'JBE':
-		# Conditional	jump. Jump if below or equal
+		# Conditional jump. Jump if below or equal
 	elif inst_type == 'READ':
 		# Reads	a character into the operand.
 	elif inst_type == 'PRINT':	
