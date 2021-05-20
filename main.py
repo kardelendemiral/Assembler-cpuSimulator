@@ -49,10 +49,10 @@ def isnumeric(s):
             return False
     return True
 
+
 inputFile = open(sys.argv[1], "r")
-#outputFile = open(sys.argv[1][0:sys.argv[1].index('.')]+".bin")
-outputFile = open("output", "w")
-variables = [None] * 65536
+outputFile = open(sys.argv[1][0:sys.argv[1].index('.')]+".bin", "w")
+#outputFile = open("output", "w")
 map = {}
 memoryLoc = 0
 
@@ -142,21 +142,23 @@ for line in inputFile:
     elif tokens[0] == "PRINT":
         o = "1C"
 
-    if len(tokens) == 2:
-        if isnumeric(tokens[1]) or tokens[1][0] == "'":
-            a = "00"
-        elif tokens[1] == "A" or tokens[1] == "B" or tokens[1] == "C" or tokens[1] == "D" or tokens[1] == "E":
-            a = "01"
-        elif tokens[1] == "[A]" or tokens[1] == "[B]" or tokens[1] == "[C]" or tokens[1] == "[D]" or tokens[1] == "[E]":
-            a = "10"
-        else:
-            a = "11"
+
+    if isnumeric(tokens[1]) or tokens[1][0] == "'" or map.has_key(tokens[1]):
+        a = "00"
+    elif tokens[1] == "A" or tokens[1] == "B" or tokens[1] == "C" or tokens[1] == "D" or tokens[1] == "E":
+        a = "01"
+    elif tokens[1] == "[A]" or tokens[1] == "[B]" or tokens[1] == "[C]" or tokens[1] == "[D]" or tokens[1] == "[E]":
+        a = "10"
+    else:
+        a = "11"
 
 
 
     if a == "00":
         if tokens[1][0] == "'":
             op = character_to_ascii(tokens[1][1])
+        elif map.has_key(tokens[1]):
+            op = map[tokens[1]]
         else:
             op = tokens[1] #buraya MYDATA da gelebilir ama bizce gelmicek
     elif a == "10":
@@ -166,8 +168,6 @@ for line in inputFile:
         if tokens[1][0] == "[":
             ic = ic(tokens[1])
             op = register_num(ic)
-        else:
-            op = map[tokens[1]]
     elif a == "01":
         op = register_num(tokens[1])
 
