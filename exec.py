@@ -111,19 +111,20 @@ for line in inputFile:
 
 instruction = instructions[0]
 
+registers = [0, 0, 0, 0, 0, 0, 0]
+memory = [None] * 65536
+stack = []
+cf = False
+zf = False
+sf = False
+
 while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bilmiyoz halt gelene kadar bakcaz
     first = instruction[0:2]
     ia = get_inst_add_type(first)
     inst_type = ia[0]
     addressing_mode = ia[1]
     last = instruction[2:]
-    registers = [0, 0, 0, 0, 0, 0, 0]
-    memory = [None] * 65536
     value = get_value(ia, last, registers)
-    stack = []
-    cf = False
-    zf = False
-    sf = False
 
     dumb = 0
 
