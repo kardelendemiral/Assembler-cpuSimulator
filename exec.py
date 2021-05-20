@@ -1,16 +1,16 @@
-def get_value(addmode, operand, registerArray):
+def get_value(addmode, operand):
     if addmode == "00":
         return operand
     elif addmode == "01": # operand is in the register
         lastChar = operand[-1]
         reg = lastChar - '0'
-        return registerArray[reg]
+        return registers[reg]
     elif addmode == "11": # operand is a memory adress
         return memory[int(operand, 16)]
     else: # 10 memory address is in the register
         lastChar = operand[-1]
         reg = lastChar - '0'
-        memoryLoc = int(registerArray[reg], 16)
+        memoryLoc = int(registers[reg], 16)
         return memory[memoryLoc]
 
 
@@ -88,18 +88,19 @@ def get_inst_add_type(s):
 
 
 def get_register_name(s):
-	if s == '0001':
-		return 'A'
-	elif s == '0002':
-	    return 'B'
-	elif s == '0003':
-		return 'C'
-	elif s == '0004':
-		return 'D'
-	elif s == '0005':
-		return 'E'
-	elif s == '0006':
-		return 'S'
+    if s == '0001':
+        return 'A'
+    elif s == '0002':
+        return 'B'
+    elif s == '0003':
+        return 'C'
+    elif s == '0004':
+        return 'D'
+    elif s == '0005':
+        return 'E'
+    elif s == '0006':
+        return 'S'
+
 
 inputFile = open("output", "r")
 outputFile = open("output2", "w")
@@ -107,7 +108,7 @@ outputFile = open("output2", "w")
 instructions = []
 
 for line in inputFile:
-	instructions.append(line)
+    instructions.append(line)
 
 instruction = instructions[0]
 
@@ -124,7 +125,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     inst_type = ia[0]
     addressing_mode = ia[1]
     last = instruction[2:]
-    value = get_value(ia, last, registers)
+    value = get_value(addressing_mode, last)
 
     dumb = 0
 
@@ -178,15 +179,15 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         # Push a word sized operand (two bytes) and update S by subtracting 2.
         dumb = 0
     elif inst_type == 'POP':
-         # Pop a word sized data (two bytes) into the operand and update S by adding 2.
-         dumb = 0
+        # Pop a word sized data (two bytes) into the operand and update S by adding 2.
+        dumb = 0
     elif inst_type == 'CMP':
-         # cf, sf, zf
+        # cf, sf, zf
         # Perform comparison (AC-operand) and set flag accordingly.
-         dumb = 0
+        dumb = 0
     elif inst_type == 'JMP':
-         # Unconditional jump. Set PC to address.
-         dumb = 0
+        # Unconditional jump. Set PC to address.
+        dumb = 0
     elif inst_type == 'JZ':
         # Conditional jump. Jump to address (given as immediate operand) if zero flag is true.
         dumb = 0
