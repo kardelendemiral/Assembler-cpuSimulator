@@ -30,6 +30,9 @@ def get_value(addmode, operand):
         memoryLoc = int(registers[reg], 16)
         return memory[memoryLoc]
 
+def getTheInstructionNumber(address):
+    decimal = int(address, 16)
+    return decimal/3
 
 def get_inst_add_type(s):
     bin_version = ""
@@ -375,31 +378,58 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
 
     elif inst_type == 'JMP': # last'ı decimala çevir ve 3'e bol sonra inst_count = orası
         # Unconditional jump. Set PC to address.
-        dumb = 0
+        nextInst = getTheInstructionNumber(last)
+        instruction = instructions[nextInst]
+        isJump = True
+        
     elif inst_type == 'JZ':
         # Conditional jump. Jump to address (given as immediate operand) if zero flag is true.
-        dumb = 0
+        if(zf):
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'JNZ':
         # Conditional jump. Jump to address (given as immediate operand) if zero flag is false.
-        dumb = 0
+        if not zf:
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'JC':
         # Conditional jump. Jump if carry flag is true.
-        dumb = 0
+        if cf:
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'JNC':
         # Conditional jump. Jump if carry flag is false.
-        dumb = 0
+        if not cf:
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'JA':
         # Conditional jump. Jump if carry flag is false.
-        dumb = 0
+        if (not zf) and (not cf):
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'JAE':
         # Conditional jump. Jump if above or equal.
-        dumb = 0
+        if not cf:
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'JB':
         # Conditional jump. Jump if below
-        dumb = 0
+        if cf:
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'JBE':
         # Conditional jump. Jump if below or equal
-        dumb = 0
+        if cf or zf:
+            nextInst = getTheInstructionNumber(last)
+            instruction = instructions[nextInst]
+            isJump = True
     elif inst_type == 'READ':
         # Reads a character into the operand.
         read_char = input()
