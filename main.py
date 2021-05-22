@@ -53,7 +53,7 @@ def isnumeric(s):
 inputFile = open(sys.argv[1], "r")
 outputFile = open(sys.argv[1][0:sys.argv[1].index('.')]+".bin", "w")
 #outputFile = open("output", "w")
-map = {}
+myMap = {}
 memoryLoc = 0
 
 
@@ -64,7 +64,7 @@ for line in inputFile:
 
     leng = len(str(tokens[0]))
     if tokens[0][leng-1] == ":":
-        map.update({tokens[0][0:leng-1]:format(memoryLoc, '04x')})
+        myMap.update({tokens[0][0:leng-1]:format(memoryLoc, '04x')})
     else:
         memoryLoc += 3
 
@@ -143,7 +143,7 @@ for line in inputFile:
         o = "1C"
 
 
-    if isnumeric(tokens[1]) or tokens[1][0] == "'" or map.has_key(tokens[1]):
+    if isnumeric(tokens[1]) or tokens[1][0] == "'" or (tokens[1] in myMap):
         a = "00"
     elif tokens[1] == "A" or tokens[1] == "B" or tokens[1] == "C" or tokens[1] == "D" or tokens[1] == "E":
         a = "01"
@@ -157,8 +157,8 @@ for line in inputFile:
     if a == "00":
         if tokens[1][0] == "'":
             op = character_to_ascii(tokens[1][1])
-        elif map.has_key(tokens[1]):
-            op = map[tokens[1]]
+        elif (tokens[1] in myMap):
+            op = myMap[tokens[1]]
         else:
             op = tokens[1] #buraya MYDATA da gelebilir ama bizce gelmicek
     elif a == "10":
@@ -173,36 +173,3 @@ for line in inputFile:
 
     outputFile.write(convert(o,a,op))
     outputFile.write("\n")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

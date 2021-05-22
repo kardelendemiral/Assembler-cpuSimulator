@@ -1,14 +1,15 @@
+import sys
 # set_cf set_zf set_sf
 def store(operand, add_mode):   # operand and add_mode can be (B)0002-01 ,([B])0002-10, xxxx-11
     decimal_address = int(operand, 16)
-    value_to_be_stored = registers[0]
+    value_to_be_stored = registers[1]
     if add_mode == '01':
         reg_name = get_register_name(operand)        # A, B falan oldu
-        registers[reg_name-'A'+1] = value_to_be_stored
+        registers[ord(reg_name)-65+1] = value_to_be_stored
     elif add_mode == '10':
-        reg_name = get_register_name(operand)        # A, B falan oldu
-        store_address = registers[reg_name-'A'+1]    # reg deki adresi aldim
-        store_dec_add = int(store_address, 16)
+        reg_name = get_register_name(operand)      # A, B falan oldu
+        store_address = registers[ord(reg_name)-65+1]    # reg deki adresi aldim
+        store_dec_add = store_address
         memory[store_dec_add] = value_to_be_stored   # regdeki adrese koydum
     elif add_mode == '11':
         memory[decimal_address] = value_to_be_stored # direkt o adrese koydum    
@@ -17,22 +18,35 @@ def store(operand, add_mode):   # operand and add_mode can be (B)0002-01 ,([B])0
 
 def get_value(addmode, operand):
     if addmode == "00":
-        return operand
+        return int(operand,16)
     elif addmode == "01": # operand is in the register
-        lastChar = operand[-1]
-        reg = lastChar - '0'
+        lastChar = operand[3]
+        reg = ord(lastChar) - 48
         return registers[reg]
     elif addmode == "11": # operand is a memory adress
         return memory[int(operand, 16)]
     else: # 10 memory address is in the register
-        lastChar = operand[-1]
-        reg = lastChar - '0'
-        memoryLoc = int(registers[reg], 16)
+        lastChar = operand[3]
+        reg = ord(lastChar) - 48
+        memoryLoc = registers[reg]
         return memory[memoryLoc]
 
 def getTheInstructionNumber(address):
+    #print(address)
     decimal = int(address, 16)
-    return decimal/3
+    #print(decimal/3)
+    return int(decimal/3)
+
+def removeSpaces(s):
+    while s[0].isspace():
+        s = s[1:]
+
+
+    while s[-1].isspace():
+        leng = len(s)
+        s = s[0:leng-1]
+
+    return s
 
 def get_inst_add_type(s):
     bin_version = ""
@@ -107,6 +121,7 @@ def get_inst_add_type(s):
     return return_list
 
 
+
 def get_register_name(s):
     if s == '0001':
         return 'A'
@@ -122,11 +137,11 @@ def get_register_name(s):
         return 'S'
 
 
-inputFile = open("output", "r")
-outputFile = open("output2", "w")
+inputFile = open(sys.argv[1], "r")
+#outputFile = open(sys.argv[1][0:sys.argv[1].index('.')]+".exec", "w")
 
 instructions = []
-reg_max_value = 31
+reg_max_value = 65535
 
 for line in inputFile:
     instructions.append(line)
@@ -149,22 +164,25 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     inst_type = ia[0]
     addressing_mode = ia[1]
     last = instruction[2:]
-    value = int(get_value(addressing_mode, last), 16) # decimal dondu
+    last = removeSpaces(last)
+    value = get_value(addressing_mode, last) # decimal dondu
     
     dumb = 0
 
-    if first == "HALT":
+    if inst_type == "HALT":
         break
+
     elif inst_type == 'LOAD': # 0041
         registers[1] = value
     elif inst_type == 'STORE':
         store(last, addressing_mode) #bu funcda a'yi store edicegimiz yeri bulup store ederiz
-        dumb = 0
     elif inst_type == 'ADD':
+        print(registers)
+        print(value)
         # cf, sf, zf
         registers[1] += value
-        if cf:
-            registers[1] += reg_max_value + 1
+        #if cf:
+           # registers[1] += reg_max_value + 1
         if registers[1] < 0:
             sf = True
         else:
@@ -174,12 +192,14 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         else:
             zf = False    
         if registers[1] > reg_max_value:
+            registers[1] -= reg_max_value
             cf = True
         else:
-            cf = False    
+            cf = False 
+        print(registers)
     elif inst_type == 'SUB':
         # cf, sf, zf
-        registers[1] -= value
+        registers[1] = registers[1] + (~value) +1 
         if cf:
             registers[1] += reg_max_value + 1
         if registers[1] < 0:
@@ -191,6 +211,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         else:
             zf = False    
         if registers[1] > reg_max_value:
+            registers[1] -= reg_max_value
             cf = True
         else:
             cf = False
@@ -200,8 +221,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         result = 0
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
-            registers[reg_name-'A'+1] += 1
-            result = registers[reg_name-'A'+1]
+            registers[ord(reg_name)-65+1] += 1
+            result = registers[ord(reg_name)-65+1]
         elif addressing_mode == '00':
             dec_value = int(last, 16)
             result = dec_value + 1
@@ -226,6 +247,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         else:
             zf = False    
         if result > reg_max_value:
+            registers[1] -= reg_max_value
             cf = True
         else:
             cf = False
@@ -235,8 +257,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         result = 0
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
-            registers[reg_name-'A'+1] -= 1
-            result = registers[reg_name-'A'+1]
+            registers[ord(reg_name)-65+1] -= 1
+            result = registers[ord(reg_name)-65+1]
         elif addressing_mode == '00':
             dec_value = int(last, 16)
             result = dec_value - 1
@@ -261,6 +283,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         else:
             zf = False    
         if result > reg_max_value:
+            registers[1] -= reg_max_value
             cf = True
         else:
             cf = False
@@ -307,7 +330,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         else:
             zf = False
     elif inst_type == 'NOT':
-        result = ~value
+        result = ~value & 65535
+        registers[1] = result
         if result < 0:
             sf = True
         else:
@@ -319,7 +343,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     elif inst_type == 'SHL':
         # cf, sf, zf
         result = value << 1
-
+        regName = get_register_name(last)
+        registers[ord(regName)-65+1] = result
         if result < 0:
             sf = True
         else:
@@ -336,7 +361,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     elif inst_type == 'SHR':
         # sf, zf
         result = value >> 1
-        
+        regName = get_register_name(last)
+        registers[ord(regName)-65+1] = result
         if result < 0:
             sf = True
         else:
@@ -380,6 +406,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         # Unconditional jump. Set PC to address.
         nextInst = getTheInstructionNumber(last)
         instruction = instructions[nextInst]
+        inst_count = nextInst
         isJump = True
         
     elif inst_type == 'JZ':
@@ -387,48 +414,56 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         if(zf):
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'JNZ':
         # Conditional jump. Jump to address (given as immediate operand) if zero flag is false.
         if not zf:
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'JC':
         # Conditional jump. Jump if carry flag is true.
         if cf:
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'JNC':
         # Conditional jump. Jump if carry flag is false.
         if not cf:
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'JA':
         # Conditional jump. Jump if carry flag is false.
         if (not zf) and (not cf):
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'JAE':
         # Conditional jump. Jump if above or equal.
         if not cf:
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'JB':
         # Conditional jump. Jump if below
         if cf:
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'JBE':
         # Conditional jump. Jump if below or equal
         if cf or zf:
             nextInst = getTheInstructionNumber(last)
             instruction = instructions[nextInst]
+            inst_count = nextInst
             isJump = True
     elif inst_type == 'READ':
         # Reads a character into the operand.
@@ -436,7 +471,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         result = ord(read_char)
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
-            registers[reg_name-'A'+1] = result
+            registers[ord(reg_name)-65+1] = result
         elif addressing_mode == '10':
             lastChar = last[-1]
             reg = lastChar - '0'
@@ -453,3 +488,5 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     
     if not isJump:
         inst_count += 1
+        #print(inst_count)
+        instruction = instructions[inst_count]
