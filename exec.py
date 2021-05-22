@@ -200,8 +200,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     elif inst_type == 'SUB':
         # cf, sf, zf
         registers[1] = registers[1] + (~value) +1 
-        if cf:
-            registers[1] += reg_max_value + 1
+        #if cf:
+            #registers[1] += reg_max_value + 1
         if registers[1] < 0:
             sf = True
         else:
@@ -386,9 +386,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         registers[6] += 2 # bununla napıcaz
     elif inst_type == 'CMP':
         # cf, sf, zf
-        # Perform comparison (AC-operand) and set flag accordingly.
-        a_value = registers[1]
-        result = a_value - value
+        # Perform comparison (AC-operand) and set flag accordingly
+        result = registers[1] + (~value) +1
         if result< 0:
             sf = True
         else:
