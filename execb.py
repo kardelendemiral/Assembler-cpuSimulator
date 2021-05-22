@@ -125,6 +125,8 @@ def get_inst_add_type(s):
 
     return return_list
 
+# def neg_to_pos(s):
+
 
 
 def get_register_name(s):
