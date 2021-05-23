@@ -21,7 +21,9 @@ def store(operand, add_mode):   # operand and add_mode can be (B)0002-01 ,([B])0
         memory[decimal_address] = first_part # direkt o adrese koydum    
         memory[decimal_address+1] = second_part
 
-
+def twos_comp(a):
+    binary = format(a & 0xffff, '016b')
+    return int(binary, 2)
 
 def get_value(addmode, operand):   # hex geliyo dec donuyo
     if addmode == "00":
@@ -149,6 +151,7 @@ inputFile = open(sys.argv[1], "r")
 memory = ['00000000'] * 65536   # MEMORYDE BINARY STRING VAR 
 i = 0
 reg_max_value = 65535
+
 
 for line in inputFile:
     first_part = line[0:2]    #08
