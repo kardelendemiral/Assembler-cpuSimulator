@@ -38,6 +38,14 @@ def hex_to_bin(s):
     decimal = int(s,16)
     return bin(decimal)
 
+def ishexnum(s):  # ffdc
+    if len(s) != 4:
+        return False
+    for x in s:
+        if (x>'9' or x<'0') and (x>'F' or x<'A') and (x>'f' or x<'a'):
+            return False
+    return True
+            
 def ic(s):
     leng = len(s)
     ic = s[1: leng-1]
@@ -143,7 +151,7 @@ for line in inputFile:
         o = "1C"
 
 
-    if isnumeric(tokens[1]) or tokens[1][0] == "'" or (tokens[1] in myMap):
+    if isnumeric(tokens[1]) or tokens[1][0] == "'" or (tokens[1] in myMap) or ishexnum(tokens[1]):
         a = "00"
     elif tokens[1] == "A" or tokens[1] == "B" or tokens[1] == "C" or tokens[1] == "D" or tokens[1] == "E":
         a = "01"
@@ -160,7 +168,7 @@ for line in inputFile:
         elif (tokens[1] in myMap):
             op = myMap[tokens[1]]
         else:
-            op = tokens[1] #buraya MYDATA da gelebilir ama bizce gelmicek
+            op = tokens[1] #ffdc
     elif a == "10":
         ic = tokens[1][1]
         op = register_num(ic)
@@ -170,6 +178,7 @@ for line in inputFile:
             op = register_num(ic)
     elif a == "01":
         op = register_num(tokens[1])
+
 
     outputFile.write(convert(o,a,op))
     outputFile.write("\n")
