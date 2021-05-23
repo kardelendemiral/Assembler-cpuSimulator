@@ -21,7 +21,7 @@ def store(operand, add_mode):   # operand and add_mode can be (B)0002-01 ,([B])0
         memory[decimal_address] = first_part # direkt o adrese koydum    
         memory[decimal_address+1] = second_part
 
-def twos_comp(a):
+def twos_comp(a):          # dec sayiyi 2s complement binary ye cevirip pozitif dec donuyo
     binary = format(a & 0xffff, '016b')
     return int(binary, 2)
 
@@ -169,7 +169,7 @@ for line in inputFile:
 isJump = False
 inst_count = 0
 instruction = memory[inst_count]
-registers = [0, 0, 0, 0, 0, 0, 0]  # PC A B C D E S bunlar decimal depoluyo
+registers = [0, 0, 0, 0, 0, 0, 65536]  # PC A B C D E S bunlar decimal depoluyo
 stack = []
 cf = False
 zf = False
@@ -197,7 +197,9 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         store(last, addressing_mode) #bu funcda a'yi store edicegimiz yeri bulup store ederiz
     elif inst_type == 'ADD':
         # cf, sf, zf
-        registers[1] += value
+        registers[1] += value 
+        if registers[1] < 0:
+            registers[1] = twos_comp(registers[1])  
         if registers[1] > reg_max_value:
             cf = True
             registers[1] -= (reg_max_value + 1)
@@ -217,6 +219,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     elif inst_type == 'SUB':
         # cf, sf, zf
         registers[1] = registers[1] + (~value) +1 
+        if registers[1] < 0:
+            registers[1] = twos_comp(registers[1]) 
         
         if registers[1] > reg_max_value:
             cf = True
@@ -241,6 +245,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
             registers[ord(reg_name)-65+1] += 1
+            if registers[ord(reg_name)-65+1] < 0:
+                registers[ord(reg_name)-65+1] = twos_comp(registers[ord(reg_name)-65+1]) 
             # cf icin
             if registers[ord(reg_name)-65+1] > reg_max_value:
                 cf = True
@@ -307,6 +313,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
             registers[ord(reg_name)-65+1] -= 1
+            if registers[ord(reg_name)-65+1] < 0:
+                registers[ord(reg_name)-65+1] = twos_comp(registers[ord(reg_name)-65+1]) 
             # cf icin
             if registers[ord(reg_name)-65+1] > reg_max_value:
                 cf = True
@@ -371,6 +379,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         a_dec_value = registers[1]
         result = value ^ a_dec_value
         registers[1] = result
+        if registers[1] < 0:
+            registers[1] = twos_comp(registers[1]) 
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -385,6 +395,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         a_dec_value = registers[1]
         result = value & a_dec_value
         registers[1] = result
+        if registers[1] < 0:
+            registers[1] = twos_comp(registers[1])
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -399,6 +411,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         a_dec_value = registers[1]
         result = value | a_dec_value
         registers[1] = result
+        if registers[1] < 0:
+            registers[1] = twos_comp(registers[1])
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -411,6 +425,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     elif inst_type == 'NOT':
         result = ~value & 65535
         registers[1] = result
+        if registers[1] < 0:
+            registers[1] = twos_comp(registers[1])
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -425,6 +441,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         result = value << 1
         regName = get_register_name(last)
         registers[ord(regName)-65+1] = result
+        if registers[ord(regName)-65+1] < 0:
+            registers[ord(regName)-65+1] = twos_comp(registers[ord(regName)-65+1])
 
         if registers[ord(regName)-65+1] > reg_max_value:
             cf = True
@@ -448,6 +466,10 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         result = value >> 1
         regName = get_register_name(last)
         registers[ord(regName)-65+1] = result
+        
+        if registers[ord(regName)-65+1] < 0:
+            registers[ord(regName)-65+1] = twos_comp(registers[ord(regName)-65+1])
+
         b = format(registers[ord(regName)-65+1], '016b')
 
         if b[0] == '1':
@@ -461,21 +483,28 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
 
     elif inst_type == 'NOP':
         continue
-    elif inst_type == 'PUSH':
+    elif inst_type == 'PUSH': # ikiye bol ve 
         # Push a word sized operand (two bytes) and update S by subtracting 2.
-        stack.append(value)
-        registers[6] -= 2 # bununla napıcaz
+        b = format(value, '016b')
+        f = b[0:8]
+        s = b[8:]
+        registers[6] -= 2
+        memory[registers[6]] = f 
+        memory[registers[6]+1] = s
     elif inst_type == 'POP':
         # Pop a word sized data (two bytes) into the operand and update S by adding 2.
         lastChar = last[-1]
         reg = lastChar - '0'
-        registers[reg] = stack.pop()
+        f = memory[registers[6]]
+        s = memory[registers[6] + 1]
+        b = f + s
+        registers[reg] = int(b, 2)
         registers[6] += 2 # bununla napıcaz
     elif inst_type == 'CMP':
         # cf, sf, zf
         # Perform comparison (AC-operand) and set flag accordingly
         result = registers[1] + (~value) + 1
-        b = format(registers[1], '016b')
+        b = format(result, '016b')
         if b[0] == '1':
             sf = True
         else:
@@ -563,6 +592,6 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         # Prints the operand as a character. abi zaten char yazin diyomus biz malmisiz
         print(chr(value))
 
-    
+    print(registers)
     if not isJump:
         inst_count += 3
