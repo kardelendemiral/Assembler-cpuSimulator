@@ -12,13 +12,17 @@ def store(operand, add_mode):   # operand and add_mode can be (B)0002-01 ,([B])0
         o = format(int(operand,16), '016b')
         first_part = o[0:8]
         second_part = o[8:]
+        memoryCheck(store_dec_add) 
         memory[store_dec_add] = first_part   # regdeki adrese koydum
+        memoryCheck(store_dec_add+1) 
         memory[store_dec_add+1] = second_part
     elif add_mode == '11':
         o = format(value_to_be_stored, '016b')
         first_part = o[0:8]
         second_part = o[8:]
-        memory[decimal_address] = first_part # direkt o adrese koydum    
+        memoryCheck(decimal_address) 
+        memory[decimal_address] = first_part # direkt o adrese koydum 
+        memoryCheck(decimal_address+1)  
         memory[decimal_address+1] = second_part
 
 def twos_comp(a):          # dec sayiyi 2s complement binary ye cevirip pozitif dec donuyo
@@ -122,6 +126,9 @@ def get_inst_add_type(s):
         return_list.append("READ")
     elif inst_type == '011100':
         return_list.append("PRINT")
+    else:
+        print("illegal instruction")
+        exit()
     # ADDRESSING MODE
     return_list.append(add_mode)
 
@@ -129,7 +136,10 @@ def get_inst_add_type(s):
 
 # def neg_to_pos(s):
 
-
+def memoryCheck(s):
+    if s > 65535 or s < 0:
+        print("memory limit exceeded")
+        exit()
 
 def get_register_name(s):
     if s == '0001':
@@ -160,8 +170,11 @@ for line in inputFile:
     dec_first = int(first_part, 16)
     bin_first = format(dec_first, '08b')
     bin_second = format(int(second_part, 16), '016b')
+    memoryCheck(i)
     memory[i] = bin_first
+    memoryCheck(i+1)
     memory[i+1] = bin_second[0:8]
+    memoryCheck(i+2)
     memory[i+2] = bin_second[8:]
     i+=3
 
@@ -279,7 +292,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
                 v = v - 255
             else:
                 cf = False    
-            bv = format(v, '08b')    
+            bv = format(v, '08b')
+            memoryCheck(memoryLoc)   
             memory[memoryLoc] = bv
             result = int(memory[memoryLoc], 2)
             if bv[0] == '1':
@@ -298,7 +312,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             if bv[0] == '1':
                 sf = True
             else:
-                sf = False  
+                sf = False
+            memoryCheck(memoryLoc)  
             memory[memoryLoc] = bv
             result = int(memory[dec_value], 2)
     
@@ -347,7 +362,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
                 v = v - 255
             else:
                 cf = False    
-            bv = format(v, '08b')    
+            bv = format(v, '08b') 
+            memoryCheck(memoryLoc)   
             memory[memoryLoc] = bv
             result = int(memory[memoryLoc], 2)
             if bv[0] == '1':
@@ -366,7 +382,8 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             if bv[0] == '1':
                 sf = True
             else:
-                sf = False  
+                sf = False
+            memoryCheck(memoryLoc) 
             memory[memoryLoc] = bv
             result = int(memory[dec_value], 2)
     
@@ -489,10 +506,16 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         f = b[0:8]
         s = b[8:]
         registers[6] -= 2
+        memoryCheck(registers[6]) 
         memory[registers[6]] = f 
+        memoryCheck(registers[6]+1) 
         memory[registers[6]+1] = s
     elif inst_type == 'POP':
         # Pop a word sized data (two bytes) into the operand and update S by adding 2.
+        if registers[6] > 65534:
+            print("stack is empty")
+            exit()
+
         lastChar = last[-1]
         reg = lastChar - '0'
         f = memory[registers[6]]
@@ -583,15 +606,16 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             lastChar = last[-1]
             reg = lastChar - '0'
             memoryLoc = registers[reg]
+            memoryCheck(memoryLoc) 
             memory[memoryLoc] = format(result, '08b')
         elif addressing_mode == '11':
             dec_value = int(last, 16)
+            memoryCheck(dec_value) 
             memory[dec_value] = format(result, '08b')
 
     elif inst_type == 'PRINT':
         # Prints the operand as a character. abi zaten char yazin diyomus biz malmisiz
         print(chr(value))
 
-    print(registers)
     if not isJump:
         inst_count += 3
