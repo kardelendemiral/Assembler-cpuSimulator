@@ -166,6 +166,10 @@ for line in inputFile:
         o = "0D"
     elif tokens[0] == "NOP":
         o = "0E"
+        res = convert(o, "00", "0000")
+        outputFile.write(res)
+        outputFile.write("\n")
+        continue
     elif tokens[0] == "PUSH":
         o = "0F"
     elif tokens[0] == "POP":
@@ -199,6 +203,7 @@ for line in inputFile:
         exit()    
 
     #tokens[1] = tokens[1].upper()
+
     if isnumeric(tokens[1]) or tokens[1][0] == "'" or (tokens[1].upper() in myMap) or ishexnum(tokens[1]) or tokens[1][0] == '"':
         a = "00"
     elif tokens[1].upper() == "A" or tokens[1].upper() == "B" or tokens[1].upper() == "C" or tokens[1].upper() == "D" or tokens[1].upper() == "E" or tokens[1].upper() == "PC" or tokens[1].upper() == "S":
