@@ -9,7 +9,7 @@ def store(operand, add_mode):   # operand and add_mode can be (B)0002-01 ,([B])0
     elif add_mode == '10':
         reg_name = get_register_name(operand)      # 1, 2 falan oldu
         store_dec_add = registers[reg_name]    # reg deki adresi aldim
-        o = format(int(operand,16), '016b')
+        o = format(value_to_be_stored, '016b')
         first_part = o[0:8]
         second_part = o[8:]
         memoryCheck(store_dec_add)
@@ -37,14 +37,18 @@ def get_value(addmode, operand):   # hex geliyo dec donuyo
         reg = ord(lastChar) - 48
         return registers[reg]
     elif addmode == "11": # operand is a memory adress
-        b = memory[int(operand, 16)]
-        return int(b, 2)
+        f = memory[int(operand, 16)] 
+        s = memory[int(operand, 16) + 1] 
+        combine = f + s
+        return int(combine, 2)
     else: # 10 memory address is in the register
         lastChar = operand[3]
         reg = ord(lastChar) - 48
         memoryLoc = registers[reg]
-        b = memory[memoryLoc]
-        return int(b, 2)
+        f = memory[memoryLoc]
+        s = memory[memoryLoc + 1]
+        combine = f + s
+        return int(combine, 2)
 
 def getTheInstructionNumber(address):
     #print(address)
@@ -178,19 +182,18 @@ for line in inputFile:
 
 
 isJump = False
-registers = [0, 0, 0, 0, 0, 0, 65536]  # PC A B C D E S bunlar decimal depoluyo
+registers = [0, 0, 0, 0, 0, 0, 65534]  # PC A B C D E S bunlar decimal depoluyo
 instruction = memory[registers[0]]
-stack = []
 cf = False
 zf = False
 sf = False
-
+x = 1
 while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bilmiyoz halt gelene kadar bakcaz
-   
+    x+=1
     isJump = False
     ia = memory[registers[0]]    #00001000
-    operand_f = memory[registers[0]+1]
-    operand_s = memory[registers[0]+2]
+    operand_f = memory[registers[0]+1] # 00
+    operand_s = memory[registers[0]+2] # 10
     iaa = get_inst_add_type(ia)
     inst_type = iaa[0]
     addressing_mode = iaa[1]
@@ -198,7 +201,6 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
     last = format(combine, '04x')
     value = get_value(addressing_mode, last) # decimal dondu
     
-
     if inst_type == "HALT":
         break
     elif inst_type == 'LOAD': # 0041
@@ -283,36 +285,46 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             lastChar = last[-1]
             reg = lastChar - '0'
             memoryLoc = registers[reg]
-            v = int(memory[memoryLoc], 2) + 1
-            if v > 255:
+            memoryCheck(memoryLoc)
+            f = int(memory[memoryLoc], 2)
+            memoryCheck(memoryLoc + 1)
+            s = int(memory[memoryLoc + 1], 2)
+            v = int(f+s, 2) + 1
+            if v > 65535:
                 cf = True
-                v = v - 255
+                v = v - 65536
             else:
                 cf = False    
-            bv = format(v, '08b')  
+            bv = format(v, '016b')  
             memoryCheck(memoryLoc)     
-            memory[memoryLoc] = bv
-            result = int(memory[memoryLoc], 2)
+            memory[memoryLoc] = bv[0:8]
+            memory[memoryLoc+1] = bv[8:]
+            result = v
             if bv[0] == '1':
                 sf = True
             else:
                 sf = False    
         elif addressing_mode == '11':
             dec_value = int(last, 16)
-            v = int(memory[dec_value], 2) + 1
-            if v > 255:
+            memoryCheck(dec_value)
+            f = memory[dec_value]
+            memoryCheck(dec_value + 1)
+            s = memory[dec_value + 1]
+            v = int(f+s, 2) + 1
+            if v > 65535:
                 cf = True
-                v = v - 255
+                v = v - 65536
             else:
                 cf = False    
-            bv = format(v, '08b') 
+            bv = format(v, '016b') 
             if bv[0] == '1':
                 sf = True
             else:
                 sf = False  
             memoryCheck(memoryLoc)     
-            memory[memoryLoc] = bv
-            result = int(memory[dec_value], 2)
+            memory[memoryLoc] = bv[0:8]
+            memory[memoryLoc+1] = bv[8:]
+            result = v
     
         if result == 0:
             zf = True
@@ -357,36 +369,45 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             lastChar = last[-1]
             reg = lastChar - '0'
             memoryLoc = registers[reg]
-            v = int(memory[memoryLoc], 2) + ((~1)&255) + 1 
-            if v > 255:
+            memoryCheck(memoryLoc)
+            f = memory[memoryLoc]
+            memoryCheck(memoryLoc+1)
+            s = memory[memoryLoc + 1]
+            v = int(f+s, 2) + ((~1)&65535) + 1 
+            if v > 65535:
                 cf = True
-                v = v - 255
+                v = v - 65536
             else:
                 cf = False    
-            bv = format(v, '08b')    
-            memory[memoryLoc] = bv
-            memoryCheck(memoryLoc)   
-            result = int(memory[memoryLoc], 2)
+            bv = format(v, '016b')    
+            memory[memoryLoc] = bv[0:8]
+            memory[memoryLoc + 1] = bv[8:]  
+            result = v
             if bv[0] == '1':
                 sf = True
             else:
                 sf = False    
         elif addressing_mode == '11':
             dec_value = int(last, 16)
-            v = int(memory[dec_value], 2) + ((~1)&255) + 1 
-            if v > 255:
+            memoryCheck(dec_value)
+            f = memory[dec_value]
+            memoryCheck(dec_value+1)
+            s = memory[dec_value + 1]
+            v = int(f+s, 2) + ((~1)&65535) + 1 
+            if v > 65535:
                 cf = True
-                v = v - 255
+                v = v - 65536
             else:
                 cf = False    
-            bv = format(v, '08b') 
+            bv = format(v, '016b') 
             if bv[0] == '1':
                 sf = True
             else:
                 sf = False  
-            memoryCheck(memoryLoc)     
-            memory[memoryLoc] = bv
-            result = int(memory[dec_value], 2)
+            memoryCheck(dec_value)     
+            memory[dec_value] = bv[0:8]
+            memory[dec_value + 1] = bv[8:]
+            result = v
     
         if result == 0:
             zf = True
@@ -500,34 +521,44 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             zf = False
 
     elif inst_type == 'NOP':
+        registers[0] += 3
         continue
     elif inst_type == 'PUSH': # ikiye bol ve 
         # Push a word sized operand (two bytes) and update S by subtracting 2.
         b = format(value, '016b')
         f = b[0:8]
         s = b[8:]
-        registers[6] -= 2
         memoryCheck(registers[6]) 
         memory[registers[6]] = f 
         memoryCheck(registers[6]+1) 
         memory[registers[6]+1] = s
+        registers[6] -= 2
     elif inst_type == 'POP':
         # Pop a word sized data (two bytes) into the operand and update S by adding 2.
-        if registers[6] > 65534:
+       
+        registers[6] += 2
+        if registers[6] >= 65536:
             print("stack is empty")
             exit()
-        lastChar = last[-1]
-        reg = lastChar - '0'
+        reg = get_register_name(last)
         f = memory[registers[6]]
         s = memory[registers[6] + 1]
         b = f + s
         registers[reg] = int(b, 2)
-        registers[6] += 2 # bununla napıcaz
+       
     elif inst_type == 'CMP':
         # cf, sf, zf
         # Perform comparison (AC-operand) and set flag accordingly
-        result = registers[1] + ((~value)&65535) + 1
-        b = format(result, '016b')
+      
+        result = registers[1] + 65536 - value
+        
+        if result > reg_max_value:
+            result = result - 65536
+            cf = True
+        else:
+            cf = False
+        
+        b = format(result, '016b')      
         if b[0] == '1':
             sf = True
         else:
@@ -535,12 +566,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         if result == 0:
             zf = True
         else:
-            zf = False    
-        if result > reg_max_value:
-            cf = True
-        else:
-            cf = False     
-
+            zf = False   
     elif inst_type == 'JMP': # last'ı decimala çevir ve 3'e bol sonra inst_count = orası
         # Unconditional jump. Set PC to address.
         nextInst = getTheInstructionNumber(last)
@@ -573,25 +599,25 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             isJump = True
     elif inst_type == 'JA':
         # Conditional jump. Jump if carry flag is false.
-        if (not zf) and (not cf):
+        if (not zf) and (not sf):
             nextInst = getTheInstructionNumber(last)
             registers[0] = nextInst
             isJump = True
     elif inst_type == 'JAE':
         # Conditional jump. Jump if above or equal.
-        if not cf:
+        if not sf:
             nextInst = getTheInstructionNumber(last)
             registers[0] = nextInst
             isJump = True
     elif inst_type == 'JB':
         # Conditional jump. Jump if below
-        if cf:
+        if sf:
             nextInst = getTheInstructionNumber(last)
             registers[0] = nextInst
             isJump = True
     elif inst_type == 'JBE':
         # Conditional jump. Jump if below or equal
-        if cf or zf:
+        if sf or zf:
             nextInst = getTheInstructionNumber(last)
             registers[0] = nextInst
             isJump = True
