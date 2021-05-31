@@ -72,6 +72,7 @@ def removeSpaces(s):
     return s
 
 def checkLine(line):
+    line = line.strip()
     i = len(line) - 1
     if line[-1] == ':':
         while line[i].isspace():
@@ -82,12 +83,13 @@ def checkLine(line):
         if (' ' in label):
             print("syntax error: invalid label name")
             exit()
+        if isnumeric(label[0]):
+            print("invalid label name")
+            exit()
     else:
-        line = line.strip()
-        line = removeSpaces(line)
         tokens = line.split()
 
-        if not(tokens[0] == "HALT") and not(len(tokens) == 2):
+        if not(tokens[0].upper() == "HALT") and not(tokens[0].upper() == "NOP") and (len(tokens) > 3 or len(tokens) == 1):
             print("invalid instruction")
             exit()
 
@@ -105,6 +107,7 @@ for line in inputFile:
     line = line.strip()
     line = removeSpaces(line)
     tokens = line.split()
+    checkLine(line)
     #print str(tokens)
 
     leng = len(str(tokens[0]))
@@ -116,7 +119,7 @@ for line in inputFile:
 inputFile.close()
 inputFile = open(sys.argv[1], "r")
 
-for line in inputFile:
+for line in inputFile:  #  LOAD " " -->  LOAD , ", "
     if line.isspace():
         continue
 
@@ -125,7 +128,16 @@ for line in inputFile:
     
     if len(tokens) == 3:
         if (tokens[1] == "'" and tokens[2] == "'") or (tokens[1] == '"' and tokens[2] == '"'):
-            tokens = [tokens[0], "' '"]
+            if (tokens[1] == "'" and tokens[2] == "'"):
+                token1 = line[line.index("'"):line.index("'")+3]
+                tokens = [tokens[0], token1]
+            else:
+                token1 = line[line.index('"'):line.index('"')+3]
+                tokens = [tokens[0], token1]
+        else:
+            print("invalid instruction")
+            exit()
+
 
     str = ""
     o = ""
@@ -238,7 +250,7 @@ for line in inputFile:
 
     elif a == "11":
         if tokens[1][0] == "[" and tokens[1][-1] == "]":
-            ic = ic(tokens[1])
+            ic = tokens[1][1:-1]
             while len(ic) < 4:
                 ic = '0' + ic
             if len(ic) > 4:
