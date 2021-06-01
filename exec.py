@@ -239,12 +239,9 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             zf = True
         else:
             zf = False    
-    elif inst_type == 'SUB':   # 1-0
+    elif inst_type == 'SUB':
         # cf, sf, zf
-        n = ((~value) & 65535) + 1 
-        if(n > reg_max_value):
-            n -= 65536
-        registers[1] = registers[1] + n
+        registers[1] = registers[1] + ((~value) & 65535) + 1 
         if registers[1] < 0:
             registers[1] = twos_comp(registers[1]) 
         
@@ -342,12 +339,12 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
         else:
             zf = False    
 
-    elif inst_type == 'DEC': # dec a 1 
+    elif inst_type == 'DEC':
         # cf, sf, zf
         result = 0
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
-            registers[reg_name] = registers[reg_name] + 65535
+            registers[reg_name] = registers[reg_name] + ((~1)&65535) + 1
             if registers[reg_name] < 0:
                 registers[reg_name] = twos_comp(registers[reg_name]) 
             # cf icin
@@ -365,7 +362,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
                 sf = False        
         elif addressing_mode == '00': 
             dec_value = int(last, 16)
-            result = dec_value + 65535
+            result = dec_value + ((~1)&65535) + 1
             if result > reg_max_value:
                 cf = True
                 result -= (reg_max_value + 1)
@@ -383,7 +380,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             f = memory[memoryLoc]
             memoryCheck(memoryLoc+1)
             s = memory[memoryLoc + 1]
-            v = int(f+s, 2) + 65535
+            v = int(f+s, 2) + ((~1)&65535) + 1 
             if v > 65535:
                 cf = True
                 v = v - 65536
@@ -403,7 +400,7 @@ while True:  # bu boyle cunku kac intructionlari kac kere execute edicegimizi bi
             f = memory[dec_value]
             memoryCheck(dec_value+1)
             s = memory[dec_value + 1]
-            v = int(f+s, 2) + 65535
+            v = int(f+s, 2) + ((~1)&65535) + 1 
             if v > 65535:
                 cf = True
                 v = v - 65536
