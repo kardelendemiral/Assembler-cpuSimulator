@@ -51,11 +51,6 @@ def ishexnum(s):
             return False
     return True
           
-# returns the inside of the parameter.            
-def ic(s):
-    leng = len(s)
-    ic = s[1: leng-1]
-    return ic
 
 def isnumeric(s):
     for c in s:
@@ -76,7 +71,7 @@ def removeSpaces(s):
 # checks line if there is an error.
 def checkLine(line):
     line = line.strip()
-    i = len(line) - 1
+    i = len(line) - 2
     if line[-1] == ':':
         while line[i].isspace():
             i = i-1
@@ -92,7 +87,7 @@ def checkLine(line):
     else:
         tokens = line.split()
 
-        if not(tokens[0].upper() == "HALT") and not(tokens[0].upper() == "NOP") and (len(tokens) > 3 or len(tokens) == 1):
+        if not(tokens[0].upper() == "HALT" and len(tokens) == 1) and not(tokens[0].upper() == "NOP" and len(tokens) == 1) and (len(tokens) > 3 or len(tokens) == 1):
             print("invalid instruction")
             exit()
 
@@ -113,9 +108,15 @@ for line in inputFile:
     tokens = line.split()
     checkLine(line)
 
+    if len(tokens) == 2:
+        if(tokens[1] == ":"):
+            tokens = [tokens[0]+":"]
     leng = len(str(tokens[0]))
     if tokens[0][leng-1] == ":" and not isnumeric(tokens[0][0]):
-        myMap.update({tokens[0][0:leng-1]:format(memoryLoc, '04x')})
+        if tokens[0][0:leng-1].upper() in myMap:
+            print("label already exists")
+            exit()
+        myMap.update({tokens[0][0:leng-1].upper():format(memoryLoc, '04x')})
     else:
         memoryLoc += 3
 
@@ -128,6 +129,10 @@ for line in inputFile:
 
     line = line.strip()
     tokens = line.split()
+
+    if len(tokens) == 2:
+        if(tokens[1] == ":"):
+            tokens = [tokens[0]+":"]
     
     # if there is an operand that includes space.
     if len(tokens) == 3:
@@ -218,7 +223,7 @@ for line in inputFile:
         exit()    
 
     # gets addressing modes.
-    if isnumeric(tokens[1]) or tokens[1][0] == "'" or (tokens[1].upper() in myMap) or ishexnum(tokens[1]) or tokens[1][0] == '"':
+    if tokens[1][0] == "'" or (tokens[1].upper() in myMap) or ishexnum(tokens[1]) or tokens[1][0] == '"':
         a = "00"
     elif tokens[1].upper() == "A" or tokens[1].upper() == "B" or tokens[1].upper() == "C" or tokens[1].upper() == "D" or tokens[1].upper() == "E" or tokens[1].upper() == "PC" or tokens[1].upper() == "S":
         a = "01"
@@ -233,7 +238,7 @@ for line in inputFile:
         if (tokens[1][0] == "'" and tokens[1][2] == "'") or (tokens[1][0] == '"' and tokens[1][2] == '"') :
             op = character_to_ascii(tokens[1][1])
         elif (tokens[1].upper() in myMap and not isnumeric(tokens[1][0])):
-            op = myMap[tokens[1]]
+            op = myMap[tokens[1].upper()]
         else:
             while len(tokens[1]) < 4:             # puts 0 in front of number.
                 tokens[1] = '0' + tokens[1]
@@ -269,7 +274,7 @@ for line in inputFile:
 
     if len(o) == 0 or len(a) == 0 or len(op) == 0:
         print("syntax error")
-        exit()    
+        exit()
     
     outputFile.write(convert(o,a,op))
     outputFile.write("\n")

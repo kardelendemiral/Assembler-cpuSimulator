@@ -224,8 +224,6 @@ while True:
     elif inst_type == 'ADD':
         # cf, sf, zf
         registers[1] += value 
-        if registers[1] < 0:
-            registers[1] = twos_comp(registers[1])  
         if registers[1] > reg_max_value:
             cf = True
             registers[1] -= (reg_max_value + 1)
@@ -245,8 +243,6 @@ while True:
     elif inst_type == 'SUB':
         # cf, sf, zf
         registers[1] = registers[1] + ((~value) & 65535) + 1 
-        if registers[1] < 0:
-            registers[1] = twos_comp(registers[1]) 
         
         if registers[1] > reg_max_value:
             cf = True
@@ -270,8 +266,6 @@ while True:
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
             registers[reg_name] += 1
-            if registers[reg_name] < 0:
-                registers[reg_name] = twos_comp(registers[reg_name]) 
             # cf
             if registers[reg_name] > reg_max_value:
                 cf = True
@@ -289,7 +283,12 @@ while True:
             dec_value = int(last, 16)
             result = dec_value + 1
             # cf
-            cf = False 
+            if result > reg_max_value:
+                result -= (reg_max_value + 1)
+                cf = True 
+            else:
+                cf = False 
+            
             b = format(result, '016b')
             # sf
             if b[0] == '1':
@@ -353,8 +352,6 @@ while True:
         if addressing_mode == '01':
             reg_name = get_register_name(last)  
             registers[reg_name] = registers[reg_name] + ((~1)&65535) + 1
-            if registers[reg_name] < 0:
-                registers[reg_name] = twos_comp(registers[reg_name]) 
             # cf
             if registers[reg_name] > reg_max_value:
                 cf = True
@@ -439,7 +436,8 @@ while True:
         result = value ^ a_dec_value
         registers[1] = result
         if registers[1] < 0:
-            registers[1] = twos_comp(registers[1]) 
+            registers[1] = twos_comp(registers[1])
+            result = registers[1]
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -456,6 +454,7 @@ while True:
         registers[1] = result
         if registers[1] < 0:
             registers[1] = twos_comp(registers[1])
+            result = registers[1]
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -472,6 +471,7 @@ while True:
         registers[1] = result
         if registers[1] < 0:
             registers[1] = twos_comp(registers[1])
+            result = registers[1]
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -486,6 +486,7 @@ while True:
         registers[1] = result
         if registers[1] < 0:
             registers[1] = twos_comp(registers[1])
+            result = registers[1]
         b = format(registers[1], '016b')
         if b[0] == '1':
             sf = True
@@ -502,7 +503,7 @@ while True:
         registers[regName] = result
         if registers[regName] < 0:
             registers[regName] = twos_comp(registers[regName])
-
+            result = registers[1]
         if registers[regName] > reg_max_value:
             cf = True
             registers[regName] -= (reg_max_value + 1)
@@ -528,6 +529,7 @@ while True:
         
         if registers[regName] < 0:
             registers[regName] = twos_comp(registers[regName])
+            result = registers[1]
 
         b = format(registers[regName], '016b')
 
@@ -564,7 +566,7 @@ while True:
         registers[reg] = int(b, 2)
     elif inst_type == 'CMP':
         # cf, sf, zf
-        result = registers[1] + 65536 - value
+        result = registers[1] + ((~value) & 65535) + 1
         if result > reg_max_value:
             result = result - 65536
             cf = True
